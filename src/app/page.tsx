@@ -1,113 +1,144 @@
-import Image from "next/image";
+"use client";
+
+import DarkLightModeBtn from "@/components/DarkLightModeBtn";
+import SearchBox from "@/components/SearchBox";
+import SelectFont from "@/components/SelectFont";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { FaExternalLinkAlt } from "react-icons/fa";
+import { IoIosPlay } from "react-icons/io";
+import { RiBookLine } from "react-icons/ri";
+import WordData, { ErrorResponse } from "./type";
+import Meanings from "@/components/Meaning";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [searchValue, setSearchValue] = useState("hello"); // initial value
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const api = `https://api.dictionaryapi.dev/api/v2/entries/en/${searchValue}`;
+  // here we have used the array in the wordData bcz data is coming in array
+  const {
+    isPending,
+    error,
+    refetch, // its like a useEffect hook
+    data: wordData,
+    // 1st one is for data and 2nd is for error
+  } = useQuery<WordData[], ErrorResponse>({
+    queryKey: ["wordData"],
+    queryFn: () => fetch(api).then((res) => res.json()),
+  });
+
+  const data: WordData | null = wordData ? wordData[0] : null;
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchValue.trim() === "") {
+      setErrorMessage("Input cannot be empty");
+      setTimeout(() => {
+        setErrorMessage("");
+      }, 2000);
+      return;
+    }
+    refetch();
+  };
+
+  console.log("data", data);
+
+  if (isPending)
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <p className="animate-bounce">Loading...</p>
+      </div>
+    );
+
+  if (error) return "An error has occurred: " + error.message;
+
+  // Speech to text code
+  const msg = new SpeechSynthesisUtterance();
+  const speechHandler = (msg: SpeechSynthesisUtterance) => {
+    msg.text = data?.word ?? "";
+    window.speechSynthesis.speak(msg);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div>
+      <main className="max-w-[689px] flex flex-col gap-10 mx-auto pt-10 px-4">
+        {/* Header */}
+        <div className="w-full flex justify-between">
+          <RiBookLine className="text-4xl text-gray-400" />
+
+          <div className="flex items-center gap-4">
+            <SelectFont />
+            <div className="h-[50px] w-[1px] bg-gray-400"></div>
+            <DarkLightModeBtn />
+          </div>
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+        {/* Search Bar */}
+        <SearchBox
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onSubmit={(e) => handleSubmit(e)}
         />
-      </div>
+        {errorMessage && <p className="text-red-400">{errorMessage}</p>}
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        {/* Main */}
+        {!data ? (
+          <div className="flex flex-col gap-5 text-center">
+            <p className="text-7xl ">😓</p>
+            <h2 className="text-xl font-bold">No definition found</h2>
+            <p className="text-lg">{`We coundn't find the definition for the work you are looking for...`}</p>
+          </div>
+        ) : (
+          <section className="flex flex-col gap-8">
+            {/* Search Item */}
+            <section className="flex flex-col gap-1">
+              <div className="flex justify-between w-full">
+                <h1 className="text-[50px] font-bold text-3xl sm:text-[64px]">
+                  {data?.word ?? ""}
+                </h1>
+                {/* play btn */}
+                <button
+                  onClick={() => speechHandler(msg)}
+                  className="group h-16 w-16 rounded-full bg-purple/20 hover:bg-purple flex items-center justify-center text-4xl transition-all"
+                >
+                  <IoIosPlay className="text-purple group-hover:text-white transition-all" />
+                </button>
+              </div>
+              <p className="text-2xl text-purple">{data?.phonetic}</p>
+            </section>
+            {/* noun */}
+            {data?.meanings.map((d, i) => (
+              <Meanings
+                key={i}
+                antonyms={d.antonyms}
+                definitions={d.definitions}
+                partOfSpeech={d.partOfSpeech}
+                synonyms={d.synonyms}
+              />
+            ))}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+            {/* Verb */}
+            {/* <Meanings /> */}
+            <hr />
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+            {/* Source */}
+            {data?.sourceUrls && data.sourceUrls.length > 0 ? (
+              <div className="mb-12">
+                <p>Source</p>
+                <Link
+                  className="flex items-center gap-2"
+                  href={data.sourceUrls[0]}
+                  target="_blank"
+                >
+                  <span>{data?.sourceUrls}</span>
+                  <FaExternalLinkAlt className="text-sm text-gray-400" />
+                </Link>
+              </div>
+            ) : null}
+          </section>
+        )}
+      </main>
+    </div>
   );
 }
