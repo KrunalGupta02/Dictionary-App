@@ -1,3 +1,5 @@
+## Practice Typescript Project
+<!--
 - Next
 - Next Themes
 - Typescript
@@ -7,3 +9,4 @@
 - Clsx
 - Speech to Text
 - Jotai (state mgmt)
+-->
