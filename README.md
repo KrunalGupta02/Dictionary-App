@@ -10,3 +10,8 @@
 - Speech to Text
 - Jotai (state mgmt)
 -->
+
+Features:- 
+-> Typescript type management
+-> Text to speech feature
+-> Error handling
