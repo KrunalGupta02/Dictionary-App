@@ -12,6 +12,6 @@
 -->
 
 Features:- 
--> Typescript type management
--> Text to speech feature
--> Error handling
+- Typescript type management
+- Text to speech feature
+- Error handling
